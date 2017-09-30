@@ -3,9 +3,9 @@ Generador de circuitos para las pruebas de siguelíneas en la modalidad de veloc
 
 Este programa ha sido ideado para facilitar la creación de este tipo de circuitos en mapa de bits y evitar invertir horas con programas de diseño gráfico para cada circuito.
 
-Para hacer uso del programa basta con tener instalado Matlab.
+Para hacer uso del programa basta con tener instalado Octave o Matlab.
 
-Si se abre la carpeta "software" desde el entorno de Matlab, podrán identificarse varios archivos con extensión ".m". El programa principal se encuentra en "circuit_maker.m", mientras que el resto de archivos son ejemplos de circuitos que he ido probando para testear el programa.
+Si se abre la carpeta "software", podrán identificarse varios archivos con extensión ".m". El programa principal se encuentra en "circuit_maker.m", mientras que el resto de archivos son ejemplos de circuitos que he ido probando para testear el programa.
 
 El primer paso es identificar las dimensiones de la lona y los parámetros del trazado (coordenadas y dirección del origen, y coordenadas absolutas de los tramos). Estos datos han de introducirse en un archivo como los de los ejemplos de los circuitos, que luego será llamado como una función desde "circuit_maker.m".
 

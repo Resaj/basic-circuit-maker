@@ -1,9 +1,9 @@
 %% --------------------------------------------------------------------
-% Este programa genera el archivo bmp para un circuito de siguelíneas
+% Este programa genera el archivo bmp para un circuito de siguelineas
 % tradicional a partir de las coordenadas significativas del circuito.
 %
-% Programa desarrollado por Rubén Espino San José
-% Equipo Puma Pride de Robótica de Competición de la LNRC.
+% Programa desarrollado por Ruben Espino San Jose
+% Equipo Puma Pride de Robotica de Competicion de la LNRC.
 %%
 
 clc
@@ -13,7 +13,8 @@ time = clock;
 fprintf('\n---------- CIRCUIT MAKER PROGRAM ----------\n');
 fprintf('started at %d:%d:%.1f\n', time(4), time(5), time(6));
 
-mm_pix = 2; % resolución en mm/píxel
+%% PARAMETROS DE CONFIGURACION
+mm_pix = 2; % resolucion en mm/pixel
 blanco = [255 255 255];
 negro = [0 0 0];
 fondo = blanco;
@@ -33,7 +34,7 @@ mostrar_circuito = 1;
 [dim origen tramos] = coord_mgw2015();
 %[dim origen tramos] = coord_mgw2015_inv();
 
-%% Calcular parámetros de la trayectoria principal
+%% Calcular parametros de la trayectoria principal
 [m n] = size(tramos);
 tramos = [tramos zeros(m,8)];
 
@@ -55,7 +56,7 @@ for i=1:m
                 tramos(i,7) = (long/(sqrt(1+(ydir/xdir)^2)) + x0) * ((xdir>=0) - (xdir<0));
                 tramos(i,8) = (long/(sqrt(1+(xdir/ydir)^2)) + y0) * ((ydir>=0) - (ydir<0));
 
-            case m-1 % penúltimo tramo (recta)
+            case m-1 % penultimo tramo (recta)
                 tramos(i,5) = tramos(i-1,7);
                 tramos(i,6) = tramos(i-1,8);
 
@@ -195,7 +196,7 @@ for i=1:m
                 radio = sqrt((xc-x1)^2 + (yc-y1)^2);
                 tramos(i+1,2) = radio;
 
-            case m % último tramo (recta)
+            case m % ultimo tramo (recta)
                 tramos(i,3) = origen(3);
                 tramos(i,4) = origen(4);
                 tramos(i,7) = origen(1);
@@ -419,7 +420,7 @@ for i=1:m
                 tramos(i,9) = omega;
                 tramos(i,10) = gamma;
 
-            case m-1 % penúltimo tramo (curva)
+            case m-1 % penultimo tramo (curva)
                 tramos(i,5) = tramos(i-1,7);
                 tramos(i,6) = tramos(i-1,8);
 
@@ -432,7 +433,7 @@ for i=1:m
                 tramos(i,9) = beta;
                 tramos(i,10) = gamma;
 
-            case m % último tramo (curva)
+            case m % ultimo tramo (curva)
                 tramos(i,5) = tramos(i-1,7);
                 tramos(i,6) = tramos(i-1,8);
                 tramos(i,7) = origen(1);
@@ -659,7 +660,7 @@ R = uint8(fondo(1)*ones(dim(2)/mm_pix, dim(1)/mm_pix));
 G = uint8(fondo(2)*ones(dim(2)/mm_pix, dim(1)/mm_pix));
 B = uint8(fondo(3)*ones(dim(2)/mm_pix, dim(1)/mm_pix));
 
-%% Pintar líneas
+%% Pintar lineas
 lineas = 2*ancho_linea/mm_pix;
 
 for i=1:m
@@ -797,3 +798,4 @@ end
 
 time = clock;
 fprintf('\nfinished at %d:%d:%2.0f\n', time(4), time(5), time(6));
+input('Pulsa enter para finalizar el programa', 's');
