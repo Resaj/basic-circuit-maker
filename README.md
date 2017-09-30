@@ -31,7 +31,7 @@ Ahora queda generar el circuito y mostrarlo, lo cual se hace habilitando a "1" l
 
 Por defecto, la línea de meta será la primera recta especificada en la tabla de parámetros de la función del circuito, y el primer robot saldrá siempre desde la parte interior del circuito. Salvo algunos detalles como los que acabo de mencionar, la mayoría de las distancias y colores empleados son parametrizables para facilitar su modificación.
 
-La resolución del circuito está por defecto en 2mm/píxel para no demorar demasiado su generación, pero se ha llegado a probar con 0.5mm/píxel en un circuito de 5x2m, obteniendo un bmp de 117MB en aproximadamente 12 minutos de ejecución.
+La resolución del circuito está por defecto en 0.5 píxeles/mm para no demorar demasiado su generación, pero se ha llegado a probar con 4 píxeles/mm en un circuito de 5x2m, obteniendo un bmp de 457MB en aproximadamente 1 minuto de ejecución.
 
 ## Autor
 [Rubén Espino San José](https://github.com/Resaj)

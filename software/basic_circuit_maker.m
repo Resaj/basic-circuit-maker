@@ -14,13 +14,14 @@ fprintf('\n---------- CIRCUIT MAKER PROGRAM ----------\n');
 fprintf('started at %d:%d:%.1f\n', time(4), time(5), time(6));
 
 %% PARAMETROS DE CONFIGURACION
-mm_pix = 2; % resolucion en mm/pixel
+pix_mm = 4; % resolucion en pixeles/mm
+mm_pix = 1/pix_mm; % resolucion en mm/pixel
 blanco = [255 255 255];
 negro = [0 0 0];
-fondo = blanco;
-color_linea = negro;
-ancho_linea = 20; % mm
-espacio_entre_lineas = 170 - ancho_linea; % mm
+fondo = blanco; % color de fondo en RGB
+color_linea = negro; % color de linea en RGB
+ancho_linea = 20; % ancho de la linea en mm
+espacio_entre_lineas = 170 - ancho_linea; % distancia entre centros de linea en mm
 
 representar_trazado_central = 1;
 representar_trazado_limite = 1;
