@@ -14,7 +14,7 @@ fprintf('\n---------- CIRCUIT MAKER PROGRAM ----------\n');
 fprintf('started at %d:%d:%.1f\n', time(4), time(5), time(6));
 
 %% PARAMETROS DE CONFIGURACION
-pix_mm = 0.25; % resolucion en pixeles/mm
+pix_mm = 0.5; % resolucion en pixeles/mm
 mm_pix = 1/pix_mm; % resolucion en mm/pixel
 blanco = [255 255 255];
 negro = [0 0 0];
@@ -619,7 +619,7 @@ end
 %% Representar bordes de curvas y rectas de la pista
 if(representar_trazado_limite)
     figure();
-    title('Trazado límite');
+    title('Trazado limite');
     hold on
     scatter(0, 0, 'filled');
     scatter(dim(1), 0, 'filled');
@@ -811,5 +811,5 @@ end
 end
 
 time = clock;
-fprintf('\nfinished at %d:%d:%2.0f\n', time(4), time(5), time(6));
-input('Pulsa enter para finalizar el programa', 's');
+%%fprintf('\nfinished at %d:%d:%2.0f\n', time(4), time(5), time(6));
+%%input('Pulsa enter para finalizar el programa', 's');
