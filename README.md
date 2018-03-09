@@ -21,7 +21,7 @@ Una vez establecidos los parámetros del circuito y modificada la llamada de la 
 <img src="images/Trazado limite.png" width="600" align = "center">
 </p>
 
-Cuando se haya comprobado la simulación gráfica del circuito, puede volver a darse el valor "0" a las variables mencionadas anteriormente para no ejecutar más las gráficas.
+Cuando se haya comprobado la simulación gráfica del circuito, puede volver a darse el valor "0" a las variables mencionadas anteriormente para no generar más las gráficas.
 
 Ahora queda generar el circuito y mostrarlo, lo cual se hace habilitando a "1" las variables "generar_circuito" y "mostrar_circuito".
 
