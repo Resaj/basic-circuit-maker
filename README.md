@@ -23,7 +23,7 @@ Una vez establecidos los parámetros del circuito y modificada la llamada de la 
 
 Cuando se haya comprobado la simulación gráfica del circuito, puede volver a darse el valor "0" a las variables mencionadas anteriormente para no generar más las gráficas.
 
-Ahora queda generar el circuito y mostrarlo, lo cual se hace habilitando a "1" las variables "generar_circuito" y "mostrar_circuito".
+Ahora queda generar el circuito y mostrarlo, lo cual se hace estableciendo a "1" las variables "generar_circuito" y "mostrar_circuito".
 
 <p align="center">
 <img src="images/circuito.bmp" width="600" align = "center">
