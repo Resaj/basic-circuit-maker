@@ -811,5 +811,5 @@ end
 end
 
 time = clock;
-%%fprintf('\nfinished at %d:%d:%2.0f\n', time(4), time(5), time(6));
-%%input('Pulsa enter para finalizar el programa', 's');
+%fprintf('\nfinished at %d:%d:%2.0f\n', time(4), time(5), time(6));
+%input('Pulsa enter para finalizar el programa', 's');
