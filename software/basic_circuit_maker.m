@@ -24,9 +24,9 @@ ancho_linea = 20; % ancho de la linea en mm
 espacio_entre_lineas = 170 - ancho_linea; % distancia entre centros de linea en mm
 
 representar_trazado_central = 1;
-representar_trazado_limite = 1;
-generar_circuito = 1;
-mostrar_circuito = 1;
+representar_trazado_limite = 0;
+generar_circuito = 0;
+mostrar_circuito = 0;
 
 %% COORDENADAS DEL CIRCUITO
 [dim origen tramos] = coord_nascar();
@@ -34,6 +34,8 @@ mostrar_circuito = 1;
 %[dim origen tramos] = coord_nascar_vert();
 %[dim origen tramos] = coord_mgw2015();
 %[dim origen tramos] = coord_mgw2015_inv();
+%[dim origen tramos] = coord_alcaniz();
+
 
 %% Calcular parametros de la trayectoria principal
 [m n] = size(tramos);
@@ -64,11 +66,12 @@ for i=1:m
                 alpha = atan(origen(4)/origen(3)) + pi*(origen(3)<0);
                 alpha = alpha + sum(tramos(1:i,1))*pi/180;
                 alpha = alpha + 2*pi*(alpha<=-pi) - 2*pi*(alpha>pi);
-                
+                alpha = alpha*(abs(abs(alpha)-pi/2)>1e-3) + (pi/2)*((alpha>0)-(alpha<0))*(abs(abs(alpha)-pi/2)<=1e-3);
+
                 if(alpha~=pi/2 && alpha~=-pi/2)
                     xdir = (abs(alpha)<pi/2) - (abs(alpha)>pi/2);
                     ydir = xdir*tan(alpha);
-                    ydir = ydir * (ydir>1e-10);
+                    ydir = ydir * (abs(ydir)>1e-10);
                 else
                     ydir = (alpha==pi/2) - (alpha==-pi/2);
                     xdir = 0;
@@ -86,6 +89,7 @@ for i=1:m
                 xdir2 = tramos(i,3);
                 ydir2 = tramos(i,4);
                 beta2 = atan(ydir2/xdir2) + pi*(xdir2<0);
+                beta2 = beta2*(abs(abs(beta2)-pi/2)>1e-3) + (pi/2)*((beta2>0)-(beta2<0))*(abs(abs(beta2)-pi/2)<=1e-3);
 
                 if(mod(beta1-beta2,pi)==0)
                     beta3 = beta1 + pi/2;
@@ -121,7 +125,7 @@ for i=1:m
                         c = corte(1)^2 - (dist^2/(1+(ydir2/xdir2)^2));
                         p = [a b c];
                         raices = roots(p);
-                        
+
                         omega = (beta1 - beta2)*(tramos(i+1,1)>0) + (beta2 - beta1)*(tramos(i+1,1)<0);
                         omega = omega + 2*pi*(omega<0);
                         if(omega > pi)
@@ -150,9 +154,11 @@ for i=1:m
 
                 gamma1 = beta2 + pi/2*(tramos(i+1,1)<0) - pi/2*(tramos(i+1,1)>0);
                 gamma1 = gamma1 + 2*pi*(gamma1<=-pi) - 2*pi*(gamma1>pi);
+                gamma1 = gamma1*(abs(abs(gamma1)-pi/2)>1e-3) + (pi/2)*((gamma1>0)-(gamma1<0))*(abs(abs(gamma1)-pi/2)<=1e-3);
                 tramos(i+1,9) = gamma1;
                 gamma2 = beta1 + pi/2*(tramos(i+1,1)<0) - pi/2*(tramos(i+1,1)>0);
                 gamma2 = gamma2 + 2*pi*(gamma2<=-pi) - 2*pi*(gamma2>pi);
+                gamma2 = gamma2*(abs(abs(gamma2)-pi/2)>1e-3) + (pi/2)*((gamma2>0)-(gamma2<0))*(abs(abs(gamma2)-pi/2)<=1e-3);
                 tramos(i+1,10) = gamma2;
 
                 x0 = tramos(i,7);
@@ -215,6 +221,7 @@ for i=1:m
                 beta0 = atan(origen(4)/origen(3)) + pi*(origen(3)<0);
                 beta0 = beta0 + sum(tramos(1:i-2,1))*pi/180;
                 beta0 = beta0 + 2*pi*(beta0<=-pi);
+                beta0 = beta0*(abs(abs(beta0)-pi/2)>1e-3) + (pi/2)*((beta0>0)-(beta0<0))*(abs(abs(beta0)-pi/2)<=1e-3);
 
                 if(beta0~=pi/2 && beta0~=-pi/2)
                     xdir0 = (abs(beta0)<pi/2) - (abs(beta0)>pi/2);
@@ -231,6 +238,7 @@ for i=1:m
                 xdir2 = tramos(i,3);
                 ydir2 = tramos(i,4);
                 beta2 = atan(ydir2/xdir2) + pi*(xdir2<0);
+                beta2 = beta2*(abs(abs(beta2)-pi/2)>1e-3) + (pi/2)*((beta2>0)-(beta2<0))*(abs(abs(beta2)-pi/2)<=1e-3);
 
                 if(mod(beta2-beta0,pi)==0)
                     beta3 = beta0 + pi/2;
@@ -266,7 +274,7 @@ for i=1:m
                         c = corte(1)^2 - (dist^2/(1+(ydir2/xdir2)^2));
                         p = [a b c];
                         raices = roots(p);
-                        
+
                         omega = (beta2 - beta0)*(tramos(i-1,1)>0) + (beta0 - beta2)*(tramos(i-1,1)<0);
                         omega = omega + 2*pi*(omega<0);
                         if(omega > pi)
@@ -274,7 +282,7 @@ for i=1:m
                         else
                             x1 = min(raices)*(xdir2 < 0) + max(raices)*(xdir2 > 0);
                         end
-
+                        
                         y1 = ydir2/xdir2*x1 + y2 - ydir2/xdir2*x2;
                     else
                         x1 = x2;
@@ -292,9 +300,11 @@ for i=1:m
 
                 gamma1 = beta0 + pi/2*(tramos(i-1,1)<0) - pi/2*(tramos(i-1,1)>0);
                 gamma1 = gamma1 + 2*pi*(gamma1<=-pi) - 2*pi*(gamma1>pi);
+                gamma1 = gamma1*(abs(abs(gamma1)-pi/2)>1e-3) + (pi/2)*((gamma1>0)-(gamma1<0))*(abs(abs(gamma1)-pi/2)<=1e-3);
                 tramos(i-1,9) = gamma1;
                 gamma2 = beta2 + pi/2*(tramos(i-1,1)<0) - pi/2*(tramos(i-1,1)>0);
                 gamma2 = gamma2 + 2*pi*(gamma2<=-pi) - 2*pi*(gamma2>pi);
+                gamma2 = gamma2*(abs(abs(gamma2)-pi/2)>1e-3) + (pi/2)*((gamma2>0)-(gamma2<0))*(abs(abs(gamma2)-pi/2)<=1e-3);
                 tramos(i-1,10) = gamma2;
 
                 if(mod(gamma1-gamma2,pi)==0)
@@ -344,9 +354,8 @@ for i=1:m
                 
                 alpha = atan(origen(4)/origen(3)) + pi*(origen(3)<0);
                 alpha = alpha + sum(tramos(1:i,1))*pi/180;
-                if(alpha<=-pi)
-                    alpha = alpha + 2*pi;
-                end
+                alpha = alpha - 2*pi*(alpha>pi) + 2*pi*(alpha<-pi);
+                alpha = alpha*(abs(abs(alpha)-pi/2)>1e-3) + (pi/2)*((alpha>0)-(alpha<0))*(abs(abs(alpha)-pi/2)<=1e-3);
                 
                 if(alpha~=pi/2 && alpha~=-pi/2)
                     xdir = (abs(alpha)<pi/2) - (abs(alpha)>pi/2);
@@ -387,6 +396,7 @@ for i=1:m
                 alpha = alpha + 2*pi*(alpha<=-pi);
                 beta = alpha + (tramos(i,1)>0)*pi/2 - (tramos(i,1)<0)*pi/2;
                 beta = beta + 2*pi*(beta<=-pi) - 2*pi*(beta>pi);
+                beta = beta*(abs(abs(beta)-pi/2)>1e-3) + (pi/2)*((beta>0)-(beta<0))*(abs(abs(beta)-pi/2)<=1e-3);
 
                 if(beta~=pi/2 && beta~=-pi/2)
                     xdir = (beta<pi/2 && beta>-pi/2) - ~(beta<pi/2 && beta>-pi/2);
@@ -409,6 +419,7 @@ for i=1:m
 
                 gamma = beta + tramos(i,1)*pi/180 - pi;
                 gamma = gamma + 2*pi*(gamma<=-pi) - 2*pi*(gamma>pi);
+                gamma = gamma*(abs(abs(gamma)-pi/2)>1e-3) + (pi/2)*((gamma>0)-(gamma<0))*(abs(abs(gamma)-pi/2)<=1e-3);
 
                 if(gamma~=pi/2 && gamma~=-pi/2)
                     xdir = (gamma<pi/2 && gamma>-pi/2) - ~(gamma<pi/2 && gamma>-pi/2);
@@ -465,6 +476,7 @@ for i=1:m
                 alpha = alpha + 2*pi*(alpha<=-pi);
                 beta = alpha + (tramos(i,1)>0)*pi/2 - (tramos(i,1)<0)*pi/2;
                 beta = beta + 2*pi*(beta<=-pi) - 2*pi*(beta>pi);
+                beta = beta*(abs(abs(beta)-pi/2)>1e-3) + (pi/2)*((beta>0)-(beta<0))*(abs(abs(beta)-pi/2)<=1e-3);
 
                 if(beta~=pi/2 && beta~=-pi/2)
                     xdir = (beta<pi/2 && beta>-pi/2) - ~(beta<pi/2 && beta>-pi/2);
@@ -487,7 +499,8 @@ for i=1:m
 
                 gamma = beta + tramos(i,1)*pi/180 - pi;
                 gamma = gamma + 2*pi*(gamma<=-pi) - 2*pi*(gamma>pi);
-
+                gamma = gamma*(abs(abs(gamma)-pi/2)>1e-3) + (pi/2)*((gamma>0)-(gamma<0))*(abs(abs(gamma)-pi/2)<=1e-3);
+                
                 if(gamma~=pi/2 && gamma~=-pi/2)
                     xdir = (gamma<pi/2 && gamma>-pi/2) - ~(gamma<pi/2 && gamma>-pi/2);
                     ydir = xdir*tan(gamma);
@@ -554,64 +567,94 @@ tramos_izq_piano = tramos;
 tramos_der_piano = tramos;
 
 for i=1:m
-    if(tramos(i,1)~=0) % curva
-        tramos_izq(i,2) = tramos(i,2) - espacio_entre_lineas/2*((tramos(i,1)>0) - (tramos(i,1)<0));
-        tramos_der(i,2) = tramos(i,2) + espacio_entre_lineas/2*((tramos(i,1)>0) - (tramos(i,1)<0));
-        tramos_izq_piano(i,2) = tramos(i,2) - (espacio_entre_lineas/2 + ancho_linea)*((tramos(i,1)>0) - (tramos(i,1)<0));
-        tramos_der_piano(i,2) = tramos(i,2) + (espacio_entre_lineas/2 + ancho_linea)*((tramos(i,1)>0) - (tramos(i,1)<0));
+    if(i==1 && tramos(1,1)==0 && tramos(m,1)==0) % recta inicial y recta final
+        x0 = tramos(1,5);
+        y0 = tramos(1,6);
         
-        x0 = tramos(i,5);
-        y0 = tramos(i,6);
-        alpha = tramos(i,9);
-        beta = alpha + pi*(tramos(i,1)>0);
+        xdir = tramos(1,3);
+        ydir = tramos(1,4);
+        beta = atan(ydir/xdir) + pi*(xdir<0) + pi/2;
         beta = beta + 2*pi*(beta<=-pi) - 2*pi*(beta>pi);
 
-        tramos_izq(i,5) = cos(beta)*espacio_entre_lineas/2 + x0;
-        tramos_izq(i,6) = sin(beta)*espacio_entre_lineas/2 + y0;
-        tramos_der(i,5) = -cos(beta)*espacio_entre_lineas/2 + x0;
-        tramos_der(i,6) = -sin(beta)*espacio_entre_lineas/2 + y0;
-        tramos_izq_piano(i,5) = cos(beta)*(espacio_entre_lineas/2+ancho_linea) + x0;
-        tramos_izq_piano(i,6) = sin(beta)*(espacio_entre_lineas/2+ancho_linea) + y0;
-        tramos_der_piano(i,5) = -cos(beta)*(espacio_entre_lineas/2+ancho_linea) + x0;
-        tramos_der_piano(i,6) = -sin(beta)*(espacio_entre_lineas/2+ancho_linea) + y0;
+        tramos_izq(1,5) = cos(beta)*espacio_entre_lineas/2 + x0;
+        tramos_izq(1,6) = sin(beta)*espacio_entre_lineas/2 + y0;
+        tramos_der(1,5) = -cos(beta)*espacio_entre_lineas/2 + x0;
+        tramos_der(1,6) = -sin(beta)*espacio_entre_lineas/2 + y0;
+        tramos_izq_piano(1,5) = cos(beta)*(espacio_entre_lineas/2+ancho_linea) + x0;
+        tramos_izq_piano(1,6) = sin(beta)*(espacio_entre_lineas/2+ancho_linea) + y0;
+        tramos_der_piano(1,5) = -cos(beta)*(espacio_entre_lineas/2+ancho_linea) + x0;
+        tramos_der_piano(1,6) = -sin(beta)*(espacio_entre_lineas/2+ancho_linea) + y0;
 
-        j = (i-1)*(i>1) + m*(i==1);
-        if(tramos(j,1)== 0)
-            tramos_izq(j,7) = tramos_izq(i,5);
-            tramos_izq(j,8) = tramos_izq(i,6);
-            tramos_der(j,7) = tramos_der(i,5);
-            tramos_der(j,8) = tramos_der(i,6);
-            tramos_izq_piano(j,7) = tramos_izq_piano(i,5);
-            tramos_izq_piano(j,8) = tramos_izq_piano(i,6);
-            tramos_der_piano(j,7) = tramos_der_piano(i,5);
-            tramos_der_piano(j,8) = tramos_der_piano(i,6);
+        if(tramos(m,1)==0)
+            tramos_izq(m,7) = tramos_izq(1,5);
+            tramos_izq(m,8) = tramos_izq(1,6);
+            tramos_der(m,7) = tramos_der(1,5);
+            tramos_der(m,8) = tramos_der(1,6);
+            tramos_izq_piano(m,7) = tramos_izq_piano(1,5);
+            tramos_izq_piano(m,8) = tramos_izq_piano(1,6);
+            tramos_der_piano(m,7) = tramos_der_piano(1,5);
+            tramos_der_piano(m,8) = tramos_der_piano(1,6);
         end
+    else
+        if(tramos(i,1)~=0) % curva
+            tramos_izq(i,2) = tramos(i,2) - espacio_entre_lineas/2*((tramos(i,1)>0) - (tramos(i,1)<0));
+            tramos_der(i,2) = tramos(i,2) + espacio_entre_lineas/2*((tramos(i,1)>0) - (tramos(i,1)<0));
+            tramos_izq_piano(i,2) = tramos(i,2) - (espacio_entre_lineas/2 + ancho_linea)*((tramos(i,1)>0) - (tramos(i,1)<0));
+            tramos_der_piano(i,2) = tramos(i,2) + (espacio_entre_lineas/2 + ancho_linea)*((tramos(i,1)>0) - (tramos(i,1)<0));
+            
+            x0 = tramos(i,5);
+            y0 = tramos(i,6);
+            alpha = tramos(i,9);
+            beta = alpha + pi*(tramos(i,1)>0);
+            beta = beta + 2*pi*(beta<=-pi) - 2*pi*(beta>pi);
 
-        xf = tramos(i,7);
-        yf = tramos(i,8);
-        alpha = tramos(i,10);
-        beta = alpha + pi*(tramos(i,1)>0);
-        beta = beta + 2*pi*(beta<=-pi) - 2*pi*(beta>pi);
+            tramos_izq(i,5) = cos(beta)*espacio_entre_lineas/2 + x0;
+            tramos_izq(i,6) = sin(beta)*espacio_entre_lineas/2 + y0;
+            tramos_der(i,5) = -cos(beta)*espacio_entre_lineas/2 + x0;
+            tramos_der(i,6) = -sin(beta)*espacio_entre_lineas/2 + y0;
+            tramos_izq_piano(i,5) = cos(beta)*(espacio_entre_lineas/2+ancho_linea) + x0;
+            tramos_izq_piano(i,6) = sin(beta)*(espacio_entre_lineas/2+ancho_linea) + y0;
+            tramos_der_piano(i,5) = -cos(beta)*(espacio_entre_lineas/2+ancho_linea) + x0;
+            tramos_der_piano(i,6) = -sin(beta)*(espacio_entre_lineas/2+ancho_linea) + y0;
 
-        tramos_izq(i,7) = cos(beta)*espacio_entre_lineas/2 + xf;
-        tramos_izq(i,8) = sin(beta)*espacio_entre_lineas/2 + yf;
-        tramos_der(i,7) = -cos(beta)*espacio_entre_lineas/2 + xf;
-        tramos_der(i,8) = -sin(beta)*espacio_entre_lineas/2 + yf;
-        tramos_izq_piano(i,7) = cos(beta)*(espacio_entre_lineas/2+ancho_linea) + xf;
-        tramos_izq_piano(i,8) = sin(beta)*(espacio_entre_lineas/2+ancho_linea) + yf;
-        tramos_der_piano(i,7) = -cos(beta)*(espacio_entre_lineas/2+ancho_linea) + xf;
-        tramos_der_piano(i,8) = -sin(beta)*(espacio_entre_lineas/2+ancho_linea) + yf;
+            j = (i-1)*(i>1) + m*(i==1);
+            if(tramos(j,1)== 0)
+                tramos_izq(j,7) = tramos_izq(i,5);
+                tramos_izq(j,8) = tramos_izq(i,6);
+                tramos_der(j,7) = tramos_der(i,5);
+                tramos_der(j,8) = tramos_der(i,6);
+                tramos_izq_piano(j,7) = tramos_izq_piano(i,5);
+                tramos_izq_piano(j,8) = tramos_izq_piano(i,6);
+                tramos_der_piano(j,7) = tramos_der_piano(i,5);
+                tramos_der_piano(j,8) = tramos_der_piano(i,6);
+            end
 
-        j = (i+1)*(i<m) + (i==m);
-        if(tramos(j,1)== 0)
-            tramos_izq(j,5) = tramos_izq(i,7);
-            tramos_izq(j,6) = tramos_izq(i,8);
-            tramos_der(j,5) = tramos_der(i,7);
-            tramos_der(j,6) = tramos_der(i,8);
-            tramos_izq_piano(j,5) = tramos_izq_piano(i,7);
-            tramos_izq_piano(j,6) = tramos_izq_piano(i,8);
-            tramos_der_piano(j,5) = tramos_der_piano(i,7);
-            tramos_der_piano(j,6) = tramos_der_piano(i,8);
+            xf = tramos(i,7);
+            yf = tramos(i,8);
+            alpha = tramos(i,10);
+            beta = alpha + pi*(tramos(i,1)>0);
+            beta = beta + 2*pi*(beta<=-pi) - 2*pi*(beta>pi);
+
+            tramos_izq(i,7) = cos(beta)*espacio_entre_lineas/2 + xf;
+            tramos_izq(i,8) = sin(beta)*espacio_entre_lineas/2 + yf;
+            tramos_der(i,7) = -cos(beta)*espacio_entre_lineas/2 + xf;
+            tramos_der(i,8) = -sin(beta)*espacio_entre_lineas/2 + yf;
+            tramos_izq_piano(i,7) = cos(beta)*(espacio_entre_lineas/2+ancho_linea) + xf;
+            tramos_izq_piano(i,8) = sin(beta)*(espacio_entre_lineas/2+ancho_linea) + yf;
+            tramos_der_piano(i,7) = -cos(beta)*(espacio_entre_lineas/2+ancho_linea) + xf;
+            tramos_der_piano(i,8) = -sin(beta)*(espacio_entre_lineas/2+ancho_linea) + yf;
+
+            j = (i+1)*(i<m) + (i==m);
+            if(tramos(j,1)== 0)
+                tramos_izq(j,5) = tramos_izq(i,7);
+                tramos_izq(j,6) = tramos_izq(i,8);
+                tramos_der(j,5) = tramos_der(i,7);
+                tramos_der(j,6) = tramos_der(i,8);
+                tramos_izq_piano(j,5) = tramos_izq_piano(i,7);
+                tramos_izq_piano(j,6) = tramos_izq_piano(i,8);
+                tramos_der_piano(j,5) = tramos_der_piano(i,7);
+                tramos_der_piano(j,6) = tramos_der_piano(i,8);
+            end
         end
     end
 end
