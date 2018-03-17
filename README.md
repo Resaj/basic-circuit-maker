@@ -31,7 +31,7 @@ Ahora queda generar el circuito y mostrarlo, lo cual se hace estableciendo a "1"
 
 La resolución del circuito está por defecto en 0.5 píxeles/mm para no demorar demasiado su generación, pero se ha llegado a probar con 4 píxeles/mm en un circuito de 5x2m, obteniendo un bmp de 457MB en aproximadamente 1 minuto de ejecución.
 
-Si se ejecuta el programa en Octave desde un terminal de Ubuntu en vez de ejecutarlo desde la interfaz gráfica, es aconsejable descomentar las dos últimas lineas de "basic_circuit_maker.m", las cuales obligan a pulsar enter para finalizar el programa. De lo contrario es posible que se cierren todas las gráficas generadas en cuanto termine la ejecución y no puedan visualizarse.
+Si se ejecuta el programa en Octave desde un terminal en vez de ejecutarlo desde la interfaz gráfica, es aconsejable descomentar las dos últimas lineas de "basic_circuit_maker.m", las cuales obligan a pulsar enter para finalizar el programa. De lo contrario es posible que se cierren todas las gráficas generadas en cuanto termine la ejecución y no puedan visualizarse.
 
 ## Autor
 [Rubén Espino San José](https://github.com/Resaj)
