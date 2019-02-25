@@ -3,14 +3,14 @@
 % tradicional a partir de las coordenadas significativas del circuito.
 %
 % Programa desarrollado por Ruben Espino San Jose
-% Equipo Puma Pride de Robotica de Competicion de la LNRC.
+% Equipo Puma Pride de Robotica de Competicion.
 %%
 
 clc
 clear variables;
 close all;
 time = clock;
-fprintf('\n---------- CIRCUIT MAKER PROGRAM ----------\n');
+fprintf('\n---------- BASIC CIRCUIT MAKER PROGRAM ----------\n');
 fprintf('started at %d:%d:%.1f\n', time(4), time(5), time(6));
 
 %% PARAMETROS DE CONFIGURACION
@@ -21,7 +21,7 @@ negro = [0 0 0];
 fondo = blanco; % color de fondo en RGB
 color_linea = negro; % color de linea en RGB
 ancho_linea = 20; % ancho de la linea en mm
-espacio_entre_lineas = 170 - ancho_linea; % distancia entre centros de linea en mm
+espacio_entre_lineas = 200 - ancho_linea; % distancia entre centros de linea en mm
 
 representar_trazado_central = 1;
 representar_trazado_limite = 0;
@@ -35,7 +35,6 @@ mostrar_circuito = 0;
 %[dim origen tramos] = coord_mgw2015();
 %[dim origen tramos] = coord_mgw2015_inv();
 %[dim origen tramos] = coord_alcaniz();
-
 
 %% Calcular parametros de la trayectoria principal
 [m n] = size(tramos);
