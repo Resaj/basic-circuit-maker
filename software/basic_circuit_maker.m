@@ -537,6 +537,10 @@ if(representar_trazado_central)
     scatter(dim(1), 0, 'filled');
     scatter(0, dim(2), 'filled');
     scatter(dim(1), dim(2), 'filled');
+    line([0 0], [0 dim(2)], 'Color','red','LineStyle','--');
+    line([0 dim(1)], [0 0], 'Color','red','LineStyle','--');
+    line([dim(1) dim(1)], [0 dim(2)], 'Color','red','LineStyle','--');
+    line([0 dim(1)], [dim(2) dim(2)], 'Color','red','LineStyle','--');
 
     for i=1:m
         scatter(tramos(i,5), tramos(i,6), 'filled');
@@ -668,6 +672,10 @@ if(representar_trazado_limite)
     scatter(dim(1), 0, 'filled');
     scatter(0, dim(2), 'filled');
     scatter(dim(1), dim(2), 'filled');
+    line([0 0], [0 dim(2)], 'Color','red','LineStyle','--');
+    line([0 dim(1)], [0 0], 'Color','red','LineStyle','--');
+    line([dim(1) dim(1)], [0 dim(2)], 'Color','red','LineStyle','--');
+    line([0 dim(1)], [dim(2) dim(2)], 'Color','red','LineStyle','--');
 
     for i=1:m
         scatter(tramos_izq(i,5), tramos_izq(i,6), 'filled');
