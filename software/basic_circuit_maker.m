@@ -36,6 +36,8 @@ mostrar_circuito = 0;
 %[dim origen tramos] = coord_mgw2015_inv();
 %[dim origen tramos] = coord_alcaniz();
 %[dim origen tramos] = coord_arduinodaylugo();
+%[dim origen tramos] = coord_amiguslabs();
+%[dim origen tramos] = coord_amiguslabs_v2();
 
 %% Calcular parametros de la trayectoria principal
 [m n] = size(tramos);
