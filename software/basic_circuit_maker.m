@@ -22,17 +22,20 @@ fondo = blanco; % color de fondo en RGB
 color_linea = negro; % color de linea en RGB
 ancho_linea = 20; % ancho de la linea en mm
 espacio_entre_lineas = 200 - ancho_linea; % distancia entre centros de linea en mm
+dif_origen_marca = 1000; % distancia entre el origen y la primera marca en mm
+separacion_marca_salida = 100; % distancia entre las lineas a seguir y la marca de salida en mm
+long_marca_salida = 50; % longitud de las marcas de salida en mm
 
-representar_trazado_central = 1;
-representar_trazado_limite = 0;
+representar_trazado_central = 0;
+representar_trazado_limite = 1;
 generar_circuito = 0;
 mostrar_circuito = 0;
 
 %% COORDENADAS DEL CIRCUITO
-[dim origen tramos] = coord_nascar();
+%[dim origen tramos] = coord_nascar();
 %[dim origen tramos] = coord_nascar_inv();
 %[dim origen tramos] = coord_nascar_vert();
-%[dim origen tramos] = coord_mgw2015();
+[dim origen tramos] = coord_mgw2015();
 %[dim origen tramos] = coord_mgw2015_inv();
 %[dim origen tramos] = coord_alcaniz();
 %[dim origen tramos] = coord_arduinodaylugo();
@@ -665,58 +668,146 @@ for i=1:m
     end
 end
 
-%% Representar bordes de curvas y rectas de la pista
-if(representar_trazado_limite)
-    figure();
-    title('Trazado limite');
-    hold on
-    scatter(0, 0, 'filled');
-    scatter(dim(1), 0, 'filled');
-    scatter(0, dim(2), 'filled');
-    scatter(dim(1), dim(2), 'filled');
-    line([0 0], [0 dim(2)], 'Color','red','LineStyle','--');
-    line([0 dim(1)], [0 0], 'Color','red','LineStyle','--');
-    line([dim(1) dim(1)], [0 dim(2)], 'Color','red','LineStyle','--');
-    line([0 dim(1)], [dim(2) dim(2)], 'Color','red','LineStyle','--');
+%% Calcular posiciones de las marcas de salida
+long_cto = 0;
+marcas_salida = [0 1 0; 0 1 0]; % diferencia al origen, tramo, desplazamiento (marcas 1 y 2)
+P_salida = zeros(2,2,2,2); % puntos de referencia para las marcas de salida (numero de salida, lado de la marca, punto interior o exterior, coordenada x o y)
 
-    for i=1:m
-        scatter(tramos_izq(i,5), tramos_izq(i,6), 'filled');
-        scatter(tramos_der(i,5), tramos_der(i,6), 'filled');
-        scatter(tramos_izq_piano(i,5), tramos_izq_piano(i,6), 'filled');
-        scatter(tramos_der_piano(i,5), tramos_der_piano(i,6), 'filled');
+for i=1:m
+  long_cto = long_cto + tramos(i,2)*(tramos(i,1)==0) + tramos(i,2)*(abs(tramos(i,1)))*pi/180*(tramos(i,1)~=0);
+end
 
-        if(tramos(i,1)==0) % recta
-            line([tramos_izq(i,5) tramos_izq(i,7)], [tramos_izq(i,6) tramos_izq(i,8)]);
-            line([tramos_der(i,5) tramos_der(i,7)], [tramos_der(i,6) tramos_der(i,8)]);
-            line([tramos_izq_piano(i,5) tramos_izq_piano(i,7)], [tramos_izq_piano(i,6) tramos_izq_piano(i,8)]);
-            line([tramos_der_piano(i,5) tramos_der_piano(i,7)], [tramos_der_piano(i,6) tramos_der_piano(i,8)]);
-            
-        else % curva
-            if(tramos(i,1)>0)
-                ang1 = tramos(i,9);
-                ang2 = tramos(i,10);
-            else
-                ang1 = tramos(i,10);
-                ang2 = tramos(i,9);
-            end
-            ang2 = ang2 + 2*pi*(ang1>ang2);
-            th = ang1:pi/1000:ang2;
-            
-            xunit = tramos_izq(i,2) * cos(th) + tramos_izq(i,3);
-            yunit = tramos_izq(i,2) * sin(th) + tramos_izq(i,4);
-            plot(xunit, yunit);
-            xunit = tramos_der(i,2) * cos(th) + tramos_der(i,3);
-            yunit = tramos_der(i,2) * sin(th) + tramos_der(i,4);
-            plot(xunit, yunit);
-            xunit = tramos_izq_piano(i,2) * cos(th) + tramos_izq_piano(i,3);
-            yunit = tramos_izq_piano(i,2) * sin(th) + tramos_izq_piano(i,4);
-            plot(xunit, yunit);
-            xunit = tramos_der_piano(i,2) * cos(th) + tramos_der_piano(i,3);
-            yunit = tramos_der_piano(i,2) * sin(th) + tramos_der_piano(i,4);
-            plot(xunit, yunit);
-        end
+while(dif_origen_marca < 0)
+  dif_origen_marca = dif_origen_marca + long_cto/2;
+end
+while(dif_origen_marca >= long_cto/2)
+  dif_origen_marca = dif_origen_marca - long_cto/2;
+end
+
+for i=1:m
+  dist_tramo = tramos(i,2)*((tramos(i,1)==0) + (tramos(i,1)~=0)*(abs(tramos(i,1)))*pi/180);
+  
+  if(dif_origen_marca < marcas_salida(1,1) + dist_tramo)
+    marcas_salida(1,3) = dif_origen_marca - marcas_salida(1,1);
+    marcas_salida(1,1) = dif_origen_marca;
+    break;
+  else
+    marcas_salida(1,1) = marcas_salida(1,1) + dist_tramo;
+    marcas_salida(1,2) = marcas_salida(1,2) + 1;
+  end
+end
+
+for i=1:m
+  dist_tramo = tramos(i,2)*((tramos(i,1)==0) + (tramos(i,1)~=0)*(abs(tramos(i,1)))*pi/180);
+  
+  if(dif_origen_marca + long_cto/2 < marcas_salida(2,1) + dist_tramo)
+    marcas_salida(2,3) = dif_origen_marca + long_cto/2 - marcas_salida(2,1);
+    marcas_salida(2,1) = dif_origen_marca + long_cto/2;
+    break;
+  else
+    marcas_salida(2,1) = marcas_salida(2,1) + dist_tramo;
+    marcas_salida(2,2) = marcas_salida(2,2) + 1;
+  end
+end
+
+for q=1:2 % seleccion de primera o segunda salida
+  for i=1:2 
+    j = marcas_salida(i,2); % seleccion de marca izquierda o derecha
+
+    x0 = tramos_izq_piano(j,5)*(i==1) + tramos_der_piano(j,5)*(i==2);
+    y0 = tramos_izq_piano(j,6)*(i==1) + tramos_der_piano(j,6)*(i==2);
+
+    if(tramos(j,1)==0) % marca en recta
+      xdir0 = tramos(j,3);
+      ydir0 = tramos(j,4);
+      alpha = atan(ydir0/xdir0) + pi*(xdir0<0) + pi/2;
+      alpha = alpha + 2*pi*(alpha<=-pi) - 2*pi*(alpha>pi);
+      beta = alpha + pi/2*((i==1) - (i==2));
+      beta = beta + 2*pi*((beta<=-pi) - (beta>pi));
+      
+      x1 = (marcas_salida(i,3) / (sqrt(1+(ydir0/xdir0)^2)) + x0) * ((xdir0>=0) - (xdir0<0));
+      y1 = (marcas_salida(i,3) / (sqrt(1+(xdir0/ydir0)^2)) + y0) * ((ydir0>=0) - (ydir0<0));
+      x2 = ((marcas_salida(i,3) + ancho_linea)/(sqrt(1+(xdir0/ydir0)^2)) + y0) * ((ydir0>=0) - (ydir0<0));
+      y2 = ((marcas_salida(i,3) + ancho_linea)/(sqrt(1+(xdir0/ydir0)^2)) + y0) * ((ydir0>=0) - (ydir0<0));
+      
+	  fprintf('marca %d en recta\n', i);
+    else % marca en curva
+	  
+	  
+	  fprintf('marca %d en curva\n', i);
     end
-    hold off
+
+    xdir = (beta<pi/2 && beta>-pi/2) - ~(beta<=pi/2 && beta>=-pi/2);
+    ydir = xdir*tan(beta)*(xdir~=0) + (beta==pi/2) - (beta==-pi/2);
+
+    P_salida(q,i,1,1) = (separacion_marca_salida/(sqrt(1+(ydir/xdir)^2)) + x1) * ((xdir>=0) - (xdir<0)); % x_11
+    P_salida(q,i,1,2) = (separacion_marca_salida/(sqrt(1+(xdir/ydir)^2)) + y1) * ((ydir>=0) - (ydir<0)); % y_11
+    P_salida(q,i,2,1) = ((separacion_marca_salida+long_marca_salida)/(sqrt(1+(ydir/xdir)^2)) + x1) * ((xdir>=0) - (xdir<0)); % x_12
+    P_salida(q,i,2,2) = ((separacion_marca_salida+long_marca_salida)/(sqrt(1+(xdir/ydir)^2)) + y1) * ((ydir>=0) - (ydir<0)); % y_12
+    P_salida(q,i,1,1) = (separacion_marca_salida/(sqrt(1+(ydir/xdir)^2)) + x2) * ((xdir>=0) - (xdir<0)); % x_21
+    P_salida(q,i,1,2) = (separacion_marca_salida/(sqrt(1+(xdir/ydir)^2)) + y2) * ((ydir>=0) - (ydir<0)); % y_21
+    P_salida(q,i,2,1) = ((separacion_marca_salida+long_marca_salida)/(sqrt(1+(ydir/xdir)^2)) + x2) * ((xdir>=0) - (xdir<0)); % x_22
+    P_salida(q,i,2,2) = ((separacion_marca_salida+long_marca_salida)/(sqrt(1+(xdir/ydir)^2)) + y2) * ((ydir>=0) - (ydir<0)); % y_22
+  end
+end
+
+%% Representar bordes de curvas y rectas de la pista y marcas de salida
+if(representar_trazado_limite)
+  figure();
+  title('Trazado limite');
+  hold on
+  scatter(0, 0, 'filled');
+  scatter(dim(1), 0, 'filled');
+  scatter(0, dim(2), 'filled');
+  scatter(dim(1), dim(2), 'filled');
+  line([0 0], [0 dim(2)], 'Color','red','LineStyle','--');
+  line([0 dim(1)], [0 0], 'Color','red','LineStyle','--');
+  line([dim(1) dim(1)], [0 dim(2)], 'Color','red','LineStyle','--');
+  line([0 dim(1)], [dim(2) dim(2)], 'Color','red','LineStyle','--');
+
+  for i=1:m
+    scatter(tramos_izq(i,5), tramos_izq(i,6), 'filled');
+    scatter(tramos_der(i,5), tramos_der(i,6), 'filled');
+    scatter(tramos_izq_piano(i,5), tramos_izq_piano(i,6), 'filled');
+    scatter(tramos_der_piano(i,5), tramos_der_piano(i,6), 'filled');
+
+    if(tramos(i,1)==0) % recta
+      line([tramos_izq(i,5) tramos_izq(i,7)], [tramos_izq(i,6) tramos_izq(i,8)]);
+      line([tramos_der(i,5) tramos_der(i,7)], [tramos_der(i,6) tramos_der(i,8)]);
+      line([tramos_izq_piano(i,5) tramos_izq_piano(i,7)], [tramos_izq_piano(i,6) tramos_izq_piano(i,8)]);
+      line([tramos_der_piano(i,5) tramos_der_piano(i,7)], [tramos_der_piano(i,6) tramos_der_piano(i,8)]);
+    else % curva
+      if(tramos(i,1)>0)
+        ang1 = tramos(i,9);
+        ang2 = tramos(i,10);
+      else
+        ang1 = tramos(i,10);
+        ang2 = tramos(i,9);
+      end
+
+      ang2 = ang2 + 2*pi*(ang1>ang2);
+      th = ang1:pi/1000:ang2;
+            
+      xunit = tramos_izq(i,2) * cos(th) + tramos_izq(i,3);
+      yunit = tramos_izq(i,2) * sin(th) + tramos_izq(i,4);
+      plot(xunit, yunit);
+      xunit = tramos_der(i,2) * cos(th) + tramos_der(i,3);
+      yunit = tramos_der(i,2) * sin(th) + tramos_der(i,4);
+      plot(xunit, yunit);
+      xunit = tramos_izq_piano(i,2) * cos(th) + tramos_izq_piano(i,3);
+      yunit = tramos_izq_piano(i,2) * sin(th) + tramos_izq_piano(i,4);
+      plot(xunit, yunit);
+      xunit = tramos_der_piano(i,2) * cos(th) + tramos_der_piano(i,3);
+      yunit = tramos_der_piano(i,2) * sin(th) + tramos_der_piano(i,4);
+      plot(xunit, yunit);
+    end
+  end
+
+  % Marcas de salida
+  scatter(P_salida(1:2,1:2,1,1), P_salida(1:2,1:2,1:2,1), 'filled');
+  scatter(P_salida(1:2,1:2,2,1), P_salida(1:2,1:2,1:2,2), 'filled');
+
+  hold off
 end
 
 %% GENERAR CIRCUITO
@@ -846,6 +937,10 @@ for i=1:m
     end
 end
 
+%% Pintar marcas de salida
+% Tomar punto medio entre P11 y P22 para comenzar el relleno de las marcas
+
+
 %% Exportar circuito
 circuito(:,:,1) = uint8(R);
 circuito(:,:,2) = uint8(G);
@@ -864,5 +959,5 @@ end
 end
 
 time = clock;
-%fprintf('\nfinished at %d:%d:%2.0f\n', time(4), time(5), time(6));
+fprintf('\nfinished at %d:%d:%2.0f\n', time(4), time(5), time(6));
 %input('Pulsa enter para finalizar el programa', 's');
