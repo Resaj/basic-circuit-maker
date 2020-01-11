@@ -7,8 +7,9 @@
 %%
 
 clc
-clear variables;
-close all;
+clear variables
+close all
+warning ("off", "Octave:divide-by-zero");
 time = clock;
 fprintf('\n---------- BASIC CIRCUIT MAKER PROGRAM ----------\n');
 fprintf('started at %d:%d:%.1f\n', time(4), time(5), time(6));
@@ -18,25 +19,32 @@ pix_mm = 0.5; % resolucion en pixeles/mm
 mm_pix = 1/pix_mm; % resolucion en mm/pixel
 blanco = [255 255 255];
 negro = [0 0 0];
+rojo = [255 0 0];
+gris = [128 128 128];
 fondo = blanco; % color de fondo en RGB
 color_linea = negro; % color de linea en RGB
 ancho_linea = 20; % ancho de la linea en mm
 espacio_entre_lineas = 200 - ancho_linea; % distancia entre centros de linea en mm
-dif_origen_marca = 500; % distancia entre el origen y la primera marca en mm
+
+incluir_marcas_salida = 1; % incluye (1) o no (0) las marcas de salida en el circuito
+incluir_linea_salida = 1; % incluye (1) o no (0) la linea de salida en el circuito
+color_marcas_salida = rojo; % color de las flechas que indican la salida
+color_linea_salida = gris; % color de las líneas de salida
+dif_origen_marca_salida = 0; % distancia entre el origen y la primera marca de salida en mm
 separacion_marca_salida = 100; % distancia entre las lineas a seguir y la marca de salida en mm
 long_marca_salida = 50; % longitud de las marcas de salida en mm
+ancho_marca_salida = ancho_linea; % ancho de las marcas de salida en mm
 
-representar_trazado_central = 0;
-representar_trazado_limite = 1;
+representar_trazado_central = 1;
+representar_trazado_limite = 0;
 generar_circuito = 0;
 mostrar_circuito = 0;
-incluir_marcas_salida = 1;
 
 %% COORDENADAS DEL CIRCUITO
-%[dim origen tramos] = coord_nascar();
+[dim origen tramos] = coord_nascar();
 %[dim origen tramos] = coord_nascar_inv();
 %[dim origen tramos] = coord_nascar_vert();
-[dim origen tramos] = coord_mgw2015();
+%[dim origen tramos] = coord_mgw2015();
 %[dim origen tramos] = coord_mgw2015_inv();
 %[dim origen tramos] = coord_alcaniz();
 %[dim origen tramos] = coord_arduinodaylugo();
@@ -670,93 +678,116 @@ for i=1:m
 end
 
 %% Calcular posiciones de las marcas de salida
-long_cto = 0;
-marcas_salida = [0 1 0; 0 1 0]; % diferencia al origen, tramo, desplazamiento (marcas 1 y 2)
-puntos_salida = zeros(2,2,2,2,2); % puntos de referencia para las marcas de salida (numero de salida, lado de la marca, punto interior o exterior, punto anterior o posterior, coordenada x o y)
+if(incluir_marcas_salida || incluir_linea_salida)
+    long_cto = 0;
+    marcas_salida = [0 1 0; 0 1 0]; % diferencia al origen, tramo, desplazamiento (marcas 1 y 2)
+    puntos_salida = zeros(2,2,2,2,2); % puntos de referencia para las marcas de salida (numero de salida, lado de la marca, punto interior o exterior, punto anterior o posterior, coordenada x o y)
 
-if(incluir_marcas_salida)
     for i=1:m
         long_cto = long_cto + tramos(i,2)*(tramos(i,1)==0) + tramos(i,2)*(abs(tramos(i,1)))*pi/180*(tramos(i,1)~=0);
     end
 
-    while(dif_origen_marca < 0)
-        dif_origen_marca = dif_origen_marca + long_cto/2;
+    while(dif_origen_marca_salida < 0)
+        dif_origen_marca_salida = dif_origen_marca_salida + long_cto/2;
     end
-    while(dif_origen_marca >= long_cto/2)
-        dif_origen_marca = dif_origen_marca - long_cto/2;
+    while(dif_origen_marca_salida >= long_cto/2)
+        dif_origen_marca_salida = dif_origen_marca_salida - long_cto/2;
     end
 
-    for i=1:m
-        dist_tramo = tramos(i,2)*((tramos(i,1)==0) + (tramos(i,1)~=0)*(abs(tramos(i,1)))*pi/180);
-        
-        if(dif_origen_marca < marcas_salida(1,1) + dist_tramo)
-            marcas_salida(1,3) = dif_origen_marca - marcas_salida(1,1);
-            marcas_salida(1,1) = dif_origen_marca;
-            break;
-        else
-            marcas_salida(1,1) = marcas_salida(1,1) + dist_tramo;
-            marcas_salida(1,2) = marcas_salida(1,2) + 1;
+    for q=1:2 % salidas 1 y 2
+        for i=1:m % número de tramo
+            dist_tramo = tramos(i,2)*((tramos(i,1)==0) + (tramos(i,1)~=0)*(abs(tramos(i,1)))*pi/180);
+            
+            if(dif_origen_marca_salida + long_cto/2*(q==2) <= marcas_salida(q,1) + dist_tramo)
+                marcas_salida(q,3) = dif_origen_marca_salida + long_cto/2*(q==2) - marcas_salida(q,1);
+                marcas_salida(q,1) = dif_origen_marca_salida + long_cto/2*(q==2);
+                break;
+            else
+                marcas_salida(q,1) = marcas_salida(q,1) + dist_tramo;
+                marcas_salida(q,2) = marcas_salida(q,2) + 1;
+            end
         end
     end
-
-    for i=1:m
-        dist_tramo = tramos(i,2)*((tramos(i,1)==0) + (tramos(i,1)~=0)*(abs(tramos(i,1)))*pi/180);
-
-        if(dif_origen_marca + long_cto/2 < marcas_salida(2,1) + dist_tramo)
-            marcas_salida(2,3) = dif_origen_marca + long_cto/2 - marcas_salida(2,1);
-            marcas_salida(2,1) = dif_origen_marca + long_cto/2;
-            break;
-        else
-            marcas_salida(2,1) = marcas_salida(2,1) + dist_tramo;
-            marcas_salida(2,2) = marcas_salida(2,2) + 1;
-        end
-    end
+    
+    separacion_comun = espacio_entre_lineas/2 + ancho_linea/2 + separacion_marca_salida;
 
     for q=1:2 % seleccion de primera o segunda salida
         j = marcas_salida(q,2);
+        x0 = tramos(j,5);
+        y0 = tramos(j,6);
 
         if(tramos(j,1)==0) % marca en recta
-            x0 = tramos(j,5);
-            y0 = tramos(j,6);
             xdir0 = tramos(j,3);
             ydir0 = tramos(j,4);
             alpha = atan(ydir0/xdir0) + pi*(xdir0<0);
             alpha = alpha + 2*pi*(alpha<=-pi) - 2*pi*(alpha>pi);
 
-            x1 = (marcas_salida(q,3) / (sqrt(1+(ydir0/xdir0)^2)) * ((xdir0>=0) - (xdir0<0)) + x0);
-            y1 = (marcas_salida(q,3) / (sqrt(1+(xdir0/ydir0)^2)) * ((ydir0>=0) - (ydir0<0)) + y0);
-            x2 = ((marcas_salida(q,3) + ancho_linea)/(sqrt(1+(ydir0/xdir0)^2)) * ((xdir0>=0) - (xdir0<0)) + x0);
-            y2 = ((marcas_salida(q,3) + ancho_linea)/(sqrt(1+(xdir0/ydir0)^2)) * ((ydir0>=0) - (ydir0<0)) + y0);
-
-            separacion_comun = espacio_entre_lineas/2 + ancho_linea/2 + separacion_marca_salida;
-
-            for i=1:2 % seleccion de marca izquierda o derecha
-                beta = alpha + pi/2*((i==1) - (i==2));
-                beta = beta + 2*pi*((beta<=-pi) - (beta>pi));
-
-                xdir = (beta<pi/2 && beta>-pi/2) - ~(beta<=pi/2 && beta>=-pi/2);
-                ydir = xdir*tan(beta)*(xdir~=0) + (beta==pi/2) - (beta==-pi/2);
-
-                puntos_salida(q,i,1,1,1) = (separacion_comun)/sqrt(1+(ydir/xdir)^2) * ((xdir>=0) - (xdir<0)) + x1; % x_11
-                puntos_salida(q,i,1,1,2) = (separacion_comun)/sqrt(1+(xdir/ydir)^2) * ((ydir>=0) - (ydir<0)) + y1; % y_11
-                puntos_salida(q,i,2,1,1) = (separacion_comun+long_marca_salida)/sqrt(1+(ydir/xdir)^2) * ((xdir>=0) - (xdir<0)) + x1; % x_12
-                puntos_salida(q,i,2,1,2) = (separacion_comun+long_marca_salida)/sqrt(1+(xdir/ydir)^2) * ((ydir>=0) - (ydir<0)) + y1; % y_12
-                puntos_salida(q,i,1,2,1) = (separacion_comun)/sqrt(1+(ydir/xdir)^2) * ((xdir>=0) - (xdir<0)) + x2; % x_21
-                puntos_salida(q,i,1,2,2) = (separacion_comun)/sqrt(1+(xdir/ydir)^2) * ((ydir>=0) - (ydir<0)) + y2; % y_21
-                puntos_salida(q,i,2,2,1) = (separacion_comun+long_marca_salida)/sqrt(1+(ydir/xdir)^2) * ((xdir>=0) - (xdir<0)) + x2; % x_22
-                puntos_salida(q,i,2,2,2) = (separacion_comun+long_marca_salida)/sqrt(1+(xdir/ydir)^2) * ((ydir>=0) - (ydir<0)) + y2; % y_22
-            end
+            x1 = (marcas_salida(q,3) - ancho_linea/2) / sqrt(1+(ydir0/xdir0)^2) * ((xdir0>0) - (xdir0<0)) + x0;
+            x2 = (marcas_salida(q,3) + ancho_linea/2) / sqrt(1+(ydir0/xdir0)^2) * ((xdir0>0) - (xdir0<0)) + x0;
+            y1 = (marcas_salida(q,3) - ancho_linea/2) / sqrt(1+(xdir0/ydir0)^2) * ((ydir0>0) - (ydir0<0)) + y0;
+            y2 = (marcas_salida(q,3) + ancho_linea/2) / sqrt(1+(xdir0/ydir0)^2) * ((ydir0>0) - (ydir0<0)) + y0;
         else % marca en curva
-            %puntos_salida(q,i,1,1,1) = x1;
-            %puntos_salida(q,i,1,1,2) = y1;
-            %puntos_salida(q,i,2,1,1) = x2;
-            %puntos_salida(q,i,2,1,2) = y2;
-            %puntos_salida(q,i,1,2,1) = x1;
-            %puntos_salida(q,i,1,2,2) = y1;
-            %puntos_salida(q,i,2,2,1) = x2;
-            %puntos_salida(q,i,2,2,2) = y2;
+            r = tramos(j,2) * ((tramos(j,1)>0) - (tramos(j,1)<0));
+            gamma = atan(origen(4)/origen(3)) + pi*(origen(3)<0) + sum(tramos(1:j-1,1))*pi/180;
+            gamma = gamma + 2*pi*((gamma<=-pi) - (gamma>pi));
+            tao = marcas_salida(q,3)/r;
+            tao = tao + 2*pi*((tao<=-pi) - (tao>pi));
+            alpha = tao + gamma;
+            alpha = alpha + 2*pi*((alpha<=-pi) - (alpha>pi));
+            xdir = (alpha<pi/2 && alpha>-pi/2) - ~(alpha<=pi/2 && alpha>=-pi/2);
+            ydir = xdir*tan(alpha)*(xdir~=0)*(abs(alpha)~=pi) + (alpha==pi/2) - (alpha==-pi/2);
+            xc = tramos(j,3);
+            yc = tramos(j,4);
 
-            fprintf('marca %d en curva\n', i);
+            xdir_c = ydir * ((r>0) - (r<0));
+            ydir_c = xdir * ((r<0) - (r>0));
+            if(xdir_c==0)
+                rho = pi/2*((ydir_c>0) - (ydir_c<0));
+            else
+                rho = atan(ydir_c/xdir_c) + pi*(xdir_c<0);
+                rho = rho + 2*pi*((rho<=-pi) - (rho>pi));
+            end
+            
+            x3 = sqrt(r^2 / (1 + (tan(rho))^2)) * ((xdir_c>=0) - (xdir_c<0)) + xc;
+            y3 = (x3 - xc)*tan(rho)*(rho~=-pi/2 && rho~=pi/2) + abs(r)*((rho==pi/2) - (rho==-pi/2)) + yc;
+            
+            x1 = -ancho_linea/2 / sqrt(1+(ydir/xdir)^2) * ((xdir>0) - (xdir<0)) + x3;
+            x2 = ancho_linea/2 / sqrt(1+(ydir/xdir)^2) * ((xdir>0) - (xdir<0)) + x3;
+            
+            y1 = -ancho_linea/2 / sqrt(1+(xdir/ydir)^2) * ((ydir>0) - (ydir<0)) + y3;
+            y2 = ancho_linea/2 / sqrt(1+(xdir/ydir)^2) * ((ydir>0) - (ydir<0)) + y3;
+        end
+
+        for i=1:2 % seleccion de marca izquierda o derecha
+            beta = alpha + pi/2*((i==1) - (i==2));
+            beta = beta + 2*pi*((beta<=-pi) - (beta>pi));
+
+            xdir = (beta<pi/2 && beta>-pi/2) - ~(beta<=pi/2 && beta>=-pi/2);
+            ydir = xdir*tan(beta)*(xdir~=0) + (beta==pi/2) - (beta==-pi/2);
+
+            if(xdir~=0)
+                puntos_salida(q,i,1,1,1) = (separacion_comun)/sqrt(1+(ydir/xdir)^2) * ((xdir>0) - (xdir<0)) + x1; % x_11
+                puntos_salida(q,i,2,1,1) = (separacion_comun+long_marca_salida)/sqrt(1+(ydir/xdir)^2) * ((xdir>0) - (xdir<0)) + x1; % x_12
+                puntos_salida(q,i,1,2,1) = (separacion_comun)/sqrt(1+(ydir/xdir)^2) * ((xdir>0) - (xdir<0)) + x2; % x_21
+                puntos_salida(q,i,2,2,1) = (separacion_comun+long_marca_salida)/sqrt(1+(ydir/xdir)^2) * ((xdir>0) - (xdir<0)) + x2; % x_22
+            else
+                puntos_salida(q,i,1,1,1) = x1; % x_11
+                puntos_salida(q,i,2,1,1) = x1; % x_12
+                puntos_salida(q,i,1,2,1) = x2; % x_21
+                puntos_salida(q,i,2,2,1) = x2; % x_22
+            end
+        
+            if(ydir~=0)
+                puntos_salida(q,i,1,1,2) = (separacion_comun)/sqrt(1+(xdir/ydir)^2) * ((ydir>0) - (ydir<0)) + y1; % y_11
+                puntos_salida(q,i,2,1,2) = (separacion_comun+long_marca_salida)/sqrt(1+(xdir/ydir)^2) * ((ydir>0) - (ydir<0)) + y1; % y_12
+                puntos_salida(q,i,1,2,2) = (separacion_comun)/sqrt(1+(xdir/ydir)^2) * ((ydir>0) - (ydir<0)) + y2; % y_21
+                puntos_salida(q,i,2,2,2) = (separacion_comun+long_marca_salida)/sqrt(1+(xdir/ydir)^2) * ((ydir>0) - (ydir<0)) + y2; % y_22
+            else
+                puntos_salida(q,i,1,1,2) = y1; % y_11
+                puntos_salida(q,i,2,1,2) = y1; % y_12
+                puntos_salida(q,i,1,2,2) = y2; % y_21
+                puntos_salida(q,i,2,2,2) = y2; % y_22
+            end
         end
     end
 end
@@ -817,16 +848,21 @@ if(representar_trazado_limite)
     if(incluir_marcas_salida)
         for q=1:2
             for i=1:2
-                for j=1:2
-                    for k=1:2
-                        scatter(puntos_salida(q,i,j,k,1), puntos_salida(q,i,j,k,2), 'filled');
-                    end
+                for k=1:2
+                    scatter(puntos_salida(q,i,2,k,1), puntos_salida(q,i,2,k,2), 'filled');
                 end
-                line([puntos_salida(q,i,1,1,1) puntos_salida(q,i,1,2,1)], [puntos_salida(q,i,1,1,2) puntos_salida(q,i,1,2,2)]);
+                scatter(sum(puntos_salida(q,i,1,1:2,1))/2, sum(puntos_salida(q,i,1,1:2,2))/2, 'filled');
                 line([puntos_salida(q,i,2,1,1) puntos_salida(q,i,2,2,1)], [puntos_salida(q,i,2,1,2) puntos_salida(q,i,2,2,2)]);
-                line([puntos_salida(q,i,1,1,1) puntos_salida(q,i,2,1,1)], [puntos_salida(q,i,1,1,2) puntos_salida(q,i,2,1,2)]);
-                line([puntos_salida(q,i,1,2,1) puntos_salida(q,i,2,2,1)], [puntos_salida(q,i,1,2,2) puntos_salida(q,i,2,2,2)]);
+                line([(puntos_salida(q,i,1,1,1)+puntos_salida(q,i,1,2,1))/2 puntos_salida(q,i,2,1,1)], [(puntos_salida(q,i,1,1,2)+puntos_salida(q,i,1,2,2))/2 puntos_salida(q,i,2,1,2)]);
+                line([(puntos_salida(q,i,1,1,1)+puntos_salida(q,i,1,2,1))/2 puntos_salida(q,i,2,2,1)], [(puntos_salida(q,i,1,1,2)+puntos_salida(q,i,1,2,2))/2 puntos_salida(q,i,2,2,2)]);
             end
+        end
+    end
+    
+    % Linea de salida
+    if(incluir_linea_salida)
+        for q=1:2
+            line([(puntos_salida(q,1,1,1,1)+puntos_salida(q,1,1,2,1))/2 (puntos_salida(q,2,1,1,1)+puntos_salida(q,2,1,2,1))/2], [(puntos_salida(q,1,1,1,2)+puntos_salida(q,1,1,2,2))/2 (puntos_salida(q,2,1,1,2)+puntos_salida(q,2,1,2,2))/2]);
         end
     end
     
@@ -841,9 +877,74 @@ R = uint8(fondo(1)*ones(dim(2)/mm_pix, dim(1)/mm_pix));
 G = uint8(fondo(2)*ones(dim(2)/mm_pix, dim(1)/mm_pix));
 B = uint8(fondo(3)*ones(dim(2)/mm_pix, dim(1)/mm_pix));
 
-%% Pintar lineas
+%% Pintar marcas y lineas de salida
 lineas = 2*ancho_linea/mm_pix;
 
+if(incluir_linea_salida)
+    for t=1:2
+        x_izq = (puntos_salida(t,1,1,1,1) + puntos_salida(t,1,1,2,1))/2;
+        y_izq = (puntos_salida(t,1,1,1,2) + puntos_salida(t,1,1,2,2))/2;
+        x_der = (puntos_salida(t,2,1,1,1) + puntos_salida(t,2,1,2,1))/2;
+        y_der = (puntos_salida(t,2,1,1,2) + puntos_salida(t,2,1,2,2))/2;
+        
+        x0 = x_izq;
+        y0 = y_izq;
+        xf = x_der;
+        yf = y_der;
+        
+        long_linea_salida = sqrt((x0-xf)^2 + (y0+yf)^2);
+
+        if(abs(x0-xf)>abs(y0-yf))
+            xunit = x0*(x0<xf) + xf*(x0>=xf):max(mm_pix/2,mm_pix/2*(xf-x0)/long_linea_salida):xf*(x0<xf) + x0*(x0>=xf);
+            yunit = (xunit-x0)*(yf-y0)/(xf-x0) + y0;
+        else
+            yunit = y0*(y0<yf) + yf*(y0>=yf):max(mm_pix/2,mm_pix/2*(yf-y0)/long_linea_salida):yf*(y0<yf) + y0*(y0>=yf);
+            xunit = (yunit-y0)*(xf-x0)/(yf-y0) + x0;
+        end
+
+        for q=1:size(xunit,2)
+            R(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_linea_salida(1);
+            G(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_linea_salida(2);
+            B(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_linea_salida(3);
+        end
+    end
+end
+
+if(incluir_marcas_salida)
+    for t=1:2
+        for i=1:2
+            xi = (puntos_salida(t,i,1,1,1) + puntos_salida(t,i,1,2,1))/2;
+            yi = (puntos_salida(t,i,1,1,2) + puntos_salida(t,i,1,2,2))/2;
+            xe1 = puntos_salida(t,i,2,1,1);
+            ye1 = puntos_salida(t,i,2,1,2);
+            xe2 = puntos_salida(t,i,2,2,1);
+            ye2 = puntos_salida(t,i,2,2,2);
+
+            for j=1:lineas
+                x0 = xi;
+                y0 = yi;
+                xf = ((lineas-j)*xe1 + (j-1)*xe2)/(lineas-1);
+                yf = ((lineas-j)*ye1 + (j-1)*ye2)/(lineas-1);
+
+                if(abs(x0-xf)>abs(y0-yf))
+                    xunit = x0*(x0<xf) + xf*(x0>=xf):max(mm_pix/2,mm_pix/2*(xf-x0)/long_marca_salida):xf*(x0<xf) + x0*(x0>=xf);
+                    yunit = (xunit-x0)*(yf-y0)/(xf-x0) + y0;
+                else
+                    yunit = y0*(y0<yf) + yf*(y0>=yf):max(mm_pix/2,mm_pix/2*(yf-y0)/long_marca_salida):yf*(y0<yf) + y0*(y0>=yf);
+                    xunit = (yunit-y0)*(xf-x0)/(yf-y0) + x0;
+                end
+
+                for q=1:size(xunit,2)
+                    R(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_marcas_salida(1);
+                    G(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_marcas_salida(2);
+                    B(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_marcas_salida(3);
+                end
+            end
+        end
+    end
+end
+
+%% Pintar lineas
 for i=1:m
     if(tramos(i,1)==0) % recta
         xi0 = tramos_izq(i,5);
@@ -947,45 +1048,6 @@ for i=1:m
                 R(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_linea(1);
                 G(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_linea(2);
                 B(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_linea(3);
-            end
-        end
-    end
-end
-
-%% Pintar marcas de salida
-if(incluir_marcas_salida)
-    for t=1:2
-        for i=1:2
-            xi1 = puntos_salida(t,i,1,1,1);
-            yi1 = puntos_salida(t,i,1,1,2);
-            xe1 = puntos_salida(t,i,2,1,1);
-            ye1 = puntos_salida(t,i,2,1,2);
-            xi2 = puntos_salida(t,i,1,2,1);
-            yi2 = puntos_salida(t,i,1,2,2);
-            xe2 = puntos_salida(t,i,2,2,1);
-            ye2 = puntos_salida(t,i,2,2,2);
-            xdir = (xe1 - xi1);
-            ydir = (ye1 - yi1);
-
-            for j=1:lineas
-                x0 = ((lineas-j)*xi1 + (j-1)*xi2)/(lineas-1);
-                y0 = ((lineas-j)*yi1 + (j-1)*yi2)/(lineas-1);
-                xf = ((lineas-j)*xe1 + (j-1)*xe2)/(lineas-1);
-                yf = ((lineas-j)*ye1 + (j-1)*ye2)/(lineas-1);
-
-                if(abs(x0-xf)>abs(y0-yf))
-                    xunit = x0*(x0<xf) + xf*(x0>=xf):max(mm_pix/2,mm_pix/2*(xf-x0)/long_marca_salida):xf*(x0<xf) + x0*(x0>=xf);
-                    yunit = (xunit-x0)*ydir/xdir + y0;
-                else
-                    yunit = y0*(y0<yf) + yf*(y0>=yf):max(mm_pix/2,mm_pix/2*(yf-y0)/long_marca_salida):yf*(y0<yf) + y0*(y0>=yf);
-                    xunit = ((yunit-y0)*xdir/ydir + x0)*(x0~=xf) + ones(size(yunit))*x0*(x0==xf);
-                end
-
-                for q=1:size(xunit,2)
-                    R(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_linea(1);
-                    G(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_linea(2);
-                    B(size(circuito,1)-floor(yunit(q)/mm_pix),floor(xunit(q)/mm_pix)) = color_linea(3);
-                end
             end
         end
     end
