@@ -18,7 +18,7 @@ Una vez establecidos los parámetros del circuito y modificada la llamada de la 
 </p>
 
 <p align="center">
-<img src="images/Trazado limite.png" width="600" align = "center">
+<img src="images/Trazado limite.png" width="800" align = "center">
 </p>
 
 Cuando se haya comprobado la simulación gráfica del circuito, puede volver a darse el valor "0" a las variables mencionadas anteriormente para no generar más las gráficas.
@@ -26,7 +26,7 @@ Cuando se haya comprobado la simulación gráfica del circuito, puede volver a d
 Ahora queda generar el circuito y mostrarlo, lo cual se hace estableciendo a "1" las variables "generar_circuito" y "mostrar_circuito".
 
 <p align="center">
-<img src="images/circuito.bmp" width="600" align = "center">
+<img src="images/circuito.bmp" width="800" align = "center">
 </p>
 
 La resolución del circuito está por defecto en 0.5 píxeles/mm para no demorar demasiado su generación, pero se ha llegado a probar con 4 píxeles/mm en un circuito de 5x2m, obteniendo un bmp de 457MB en aproximadamente 1 minuto de ejecución.
