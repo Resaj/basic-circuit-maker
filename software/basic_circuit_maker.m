@@ -15,41 +15,43 @@ fprintf('\n---------- BASIC CIRCUIT MAKER PROGRAM ----------\n');
 fprintf('started at %d:%d:%.1f\n', time(4), time(5), time(6));
 
 %% PARAMETROS DE CONFIGURACION
-pix_mm = 0.5; % resolucion en pixeles/mm
+pix_mm = 2; % resolucion en pixeles/mm
 mm_pix = 1/pix_mm; % resolucion en mm/pixel
 blanco = [255 255 255];
 negro = [0 0 0];
 rojo = [255 0 0];
-gris = [128 128 128];
+gris = [96 96 96];
 fondo = blanco; % color de fondo en RGB
 color_linea = negro; % color de linea en RGB
 ancho_linea = 20; % ancho de la linea en mm
-espacio_entre_lineas = 200 - ancho_linea; % distancia entre centros de linea en mm
+distancia_entre_lineas = 200; % distancia entre centros de linea en mm
+espacio_entre_lineas = distancia_entre_lineas - ancho_linea; % espacio entre las líneas en mm
 
 incluir_marcas_salida = 1; % incluye (1) o no (0) las marcas de salida en el circuito
 incluir_linea_salida = 1; % incluye (1) o no (0) la linea de salida en el circuito
 color_marcas_salida = rojo; % color de las flechas que indican la salida
 color_linea_salida = gris; % color de las líneas de salida
-dif_origen_marca_salida = 0; % distancia entre el origen y la primera marca de salida en mm
 separacion_marca_salida = 100; % distancia entre las lineas a seguir y la marca de salida en mm
 long_marca_salida = 50; % longitud de las marcas de salida en mm
 ancho_marca_salida = ancho_linea; % ancho de las marcas de salida en mm
 
-representar_trazado_central = 1;
-representar_trazado_limite = 0;
+representar_trazado_central = 0;
+representar_trazado_limite = 1;
+medir_circuito = 1;
 generar_circuito = 0;
 mostrar_circuito = 0;
 
 %% COORDENADAS DEL CIRCUITO
-[dim origen tramos] = coord_nascar();
-%[dim origen tramos] = coord_nascar_inv();
-%[dim origen tramos] = coord_nascar_vert();
-%[dim origen tramos] = coord_mgw2015();
-%[dim origen tramos] = coord_mgw2015_inv();
-%[dim origen tramos] = coord_alcaniz();
-%[dim origen tramos] = coord_arduinodaylugo();
-%[dim origen tramos] = coord_amiguslabs();
-%[dim origen tramos] = coord_amiguslabs_v2();
+%[dim origen tramos marca_salida] = coord_nascar();
+%[dim origen tramos marca_salida] = coord_nascar_inv();
+%[dim origen tramos marca_salida] = coord_nascar_vert();
+%[dim origen tramos marca_salida] = coord_mgw2015();
+%[dim origen tramos marca_salida] = coord_mgw2015_inv();
+%[dim origen tramos marca_salida] = coord_alcaniz();
+%[dim origen tramos marca_salida] = coord_arduinodaylugo();
+%[dim origen tramos marca_salida] = coord_amiguslabs();
+%[dim origen tramos marca_salida] = coord_amiguslabs_v2()
+[dim origen tramos marca_salida] = coord_oshwdem2023();
 
 %% Calcular parametros de la trayectoria principal
 [m n] = size(tramos);
@@ -70,8 +72,8 @@ for i=1:m
                 y0 = tramos(i,6);
                 long = tramos(i,2);
                 
-                tramos(i,7) = (long/(sqrt(1+(ydir/xdir)^2)) + x0) * ((xdir>=0) - (xdir<0));
-                tramos(i,8) = (long/(sqrt(1+(xdir/ydir)^2)) + y0) * ((ydir>=0) - (ydir<0));
+                tramos(i,7) = (long/(sqrt(1+(ydir/xdir)^2))) * ((xdir>=0) - (xdir<0)) + x0;
+                tramos(i,8) = (long/(sqrt(1+(xdir/ydir)^2))) * ((ydir>=0) - (ydir<0)) + y0;
 
             case m-1 % penultimo tramo (recta)
                 tramos(i,5) = tramos(i-1,7);
@@ -677,6 +679,20 @@ for i=1:m
     end
 end
 
+%% Medir longitud del circuito
+if(medir_circuito)
+    long_cto_izq = 0;
+    long_cto_der = 0;
+
+    for i=1:m
+        long_cto_izq = long_cto_izq + tramos(i,2)*(tramos(i,1)==0) + (tramos(i,2) + distancia_entre_lineas/2*((tramos(i,1)<0)-(tramos(i,1)>0)))*(abs(tramos(i,1)))*pi/180*(tramos(i,1)~=0);
+        long_cto_der = long_cto_der + tramos(i,2)*(tramos(i,1)==0) + (tramos(i,2) + distancia_entre_lineas/2*((tramos(i,1)>0)-(tramos(i,1)<0)))*(abs(tramos(i,1)))*pi/180*(tramos(i,1)~=0);
+    end
+    
+    fprintf('\nLongitud circuito izquierdo = %d m\n', long_cto_izq/1000);
+    fprintf('Longitud circuito derecho = %d m\n', long_cto_der/1000);
+end
+
 %% Calcular posiciones de las marcas de salida
 if(incluir_marcas_salida || incluir_linea_salida)
     long_cto = 0;
@@ -686,21 +702,21 @@ if(incluir_marcas_salida || incluir_linea_salida)
     for i=1:m
         long_cto = long_cto + tramos(i,2)*(tramos(i,1)==0) + tramos(i,2)*(abs(tramos(i,1)))*pi/180*(tramos(i,1)~=0);
     end
-
-    while(dif_origen_marca_salida < 0)
-        dif_origen_marca_salida = dif_origen_marca_salida + long_cto/2;
+    
+    while(marca_salida < 0)
+        marca_salida = marca_salida + long_cto/2;
     end
-    while(dif_origen_marca_salida >= long_cto/2)
-        dif_origen_marca_salida = dif_origen_marca_salida - long_cto/2;
+    while(marca_salida >= long_cto/2)
+        marca_salida = marca_salida - long_cto/2;
     end
 
     for q=1:2 % salidas 1 y 2
         for i=1:m % número de tramo
             dist_tramo = tramos(i,2)*((tramos(i,1)==0) + (tramos(i,1)~=0)*(abs(tramos(i,1)))*pi/180);
             
-            if(dif_origen_marca_salida + long_cto/2*(q==2) <= marcas_salida(q,1) + dist_tramo)
-                marcas_salida(q,3) = dif_origen_marca_salida + long_cto/2*(q==2) - marcas_salida(q,1);
-                marcas_salida(q,1) = dif_origen_marca_salida + long_cto/2*(q==2);
+            if(marca_salida + long_cto/2*(q==2) <= marcas_salida(q,1) + dist_tramo)
+                marcas_salida(q,3) = marca_salida + long_cto/2*(q==2) - marcas_salida(q,1);
+                marcas_salida(q,1) = marca_salida + long_cto/2*(q==2);
                 break;
             else
                 marcas_salida(q,1) = marcas_salida(q,1) + dist_tramo;
